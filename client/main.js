@@ -1,7 +1,9 @@
 var container = require('./container.js');
 var DUMMY_URL = 'https://www.youtube.com/watch?v=RDrfE9I8_hs';
 function main() {
-    container.get('videoFetchService').getGifForVideoSegment(DUMMY_URL, {
+    container.get('videoFetchService').getGifForVideoSegment(DUMMY_URL).then(function(file) {
+        container.get('gifProcessingService').convertVideoToGif();
+    }), {
         start: 30,
         duration: 2
     }).then(function(file) {
