@@ -35,3 +35,6 @@ node_modules
 # Other
 *.gif
 *.mp4
+.*.swp
+*.swp
+.DS_Store
