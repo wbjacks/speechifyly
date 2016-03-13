@@ -1,0 +1,29 @@
+{
+  "name": "speechifyly",
+  "version": "1.0.0",
+  "description": "speechify ur txt",
+  "main": "app.js",
+  "dependencies": {
+    "express": "~3.0.0",
+    "gifsicle": "^3.0.3",
+    "gify": "^0.2.0",
+    "kontainer-di": "^0.9.8",
+    "nib": "^1.1.0",
+    "stylus": "^0.54.2",
+    "ytdl-core": "^0.7.10"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wbjacks/speechifyly.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wbjacks/speechifyly/issues"
+  },
+  "homepage": "https://github.com/wbjacks/speechifyly"
+}
