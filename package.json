@@ -10,11 +10,15 @@
     "kontainer-di": "^0.9.8",
     "nib": "^1.1.0",
     "stylus": "^0.54.2",
-    "ytdl-core": "^0.7.10"
+    "ytdl-core": "^0.7.10",
+    "chai": "3.5.0",
+    "nock": "7.2.2",
+    "cheerio": "0.20.0",
+    "moment": "2.12.0"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "mocha"
+    "test": "mocha test/*"
   },
   "repository": {
     "type": "git",
