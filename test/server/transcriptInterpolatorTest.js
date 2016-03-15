@@ -1,6 +1,6 @@
-var assert       = require('chai').assert;
+var _assert       = require('chai').assert;
 
-var interpolator = require('../../src/server/transcriptInterpolator.js');
+var _interpolator = require('../../src/server/transcriptInterpolator.js');
 
 describe('Transcript Interpolator', function() {
 	it('should interpolate transcript chunks according to word length', function() {
@@ -46,8 +46,8 @@ describe('Transcript Interpolator', function() {
 				},
 			];
 
-		interpolator(parsedTranscript, function(interpolatedTranscript) {
-			assert.deepEqual(expectedInterpolatedTranscript, interpolatedTranscript);
+		_interpolator(parsedTranscript, function(interpolatedTranscript) {
+			_assert.deepEqual(expectedInterpolatedTranscript, interpolatedTranscript);
 		});
 	});
 });
