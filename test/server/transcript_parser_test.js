@@ -1,13 +1,13 @@
 var _assert   = require('chai').assert;
 var _nock     = require('nock');
 
-var _parser   = require('../../src/server/transcriptParser.js');
+var _parser   = require('../../src/server/transcript_parser.js');
 
 describe('Transcript Parser', function() {
 	it('should download transcript from YouTube and parse into JSON array', function(done) {
 		var youtubeEndpoint = _nock('https://www.youtube.com')
 			.get('/api/timedtext?lang=en&fmt=ttml&name=&v=KJGZ9rYtcfE')
-			.replyWithFile(200, __dirname + '/../fixture/youtubeTranscript.html');
+			.replyWithFile(200, __dirname + '/../fixture/youtube_transcript.html');
 
 		var expectedTranscript = [
 			{

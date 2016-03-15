@@ -1,6 +1,6 @@
 var _assert       = require('chai').assert;
 
-var _interpolator = require('../../src/server/transcriptInterpolator.js');
+var _interpolator = require('../../src/server/transcript_interpolator.js');
 
 describe('Transcript Interpolator', function() {
 	it('should interpolate transcript chunks according to word length', function() {
