@@ -7,14 +7,16 @@ var VideoFetchService = function() {
 
     return {
         getVideoForUrl: function(videoUrl) {
-            var mp4File = Date.now() + '.mp4';
+            var mp4File = videoUrl + '.mp4';
             return new Promise(function(resolve) {
                 var writeStream = _fs.createWriteStream(mp4File);
                 writeStream.on('finish', resolve);
+                console.log(_ytdl(videoUrl, {quality: I_TAG}));
                 _ytdl(videoUrl, {quality: I_TAG}).pipe(writeStream);
+                resolve(mp4File);
             });
         }
     };
 }
 
-module.exports = VideoFetchService;
+module.exports = VideoFetchService();
