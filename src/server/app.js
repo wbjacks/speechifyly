@@ -4,10 +4,11 @@
 var express = require('express');
  
 var server = express();
-server.use(express.static(__dirname + 'resources/static'));
+console.log(__dirname);
+server.use(express.static('./static'));
  
 server.get('/', function (req, res) {
-  res.sendFile('./resources/static/index.html');
+  res.sendFile('index.html', {root: './static'});
 })
 
 var port = process.env.PORT || 3000;

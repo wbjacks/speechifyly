@@ -19,8 +19,11 @@
         integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r"
         crossorigin="anonymous">
 
+    <!-- Library CSS -->
+    <link rel="stylesheet" href="./css/lib/awesomplete.css">
+
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="./style/custom.css">
+    <link rel="stylesheet" href="./css/custom.css">
     
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -37,14 +40,15 @@
 
             <div class="primary-input">
                 <div class="celebrity-input">
-                    <select placeholder="Celebrity">
+                    <select id="celebrity-input" placeholder="Celebrity">
+                        <option value=""></option>
                         <option value="foo">Foo</option>
                         <option value="bar">Bar</option>
                     </select>
                 </div>
 
                 <div class="sentence-input">
-                    <input type="text" placeholder="Sentence">
+                    <input id="autocomplete" placeholder="Sentence"/>
                 </div>
             <div>
         </div>
@@ -57,5 +61,13 @@
         integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
         crossorigin="anonymous">
     </script>
+
+    <!-- Library scripts -->
+    <!-- <script src="./js/lib/awesomplete.min.js"></script> -->
+    <script src="./js/lib/awesomplete.js"></script>
+
+    <!-- Custom scripts -->
+    <script src="./js/autocomplete.js"></script>
+    <script src="./js/main.js"></script>
   </body>
 </html>
