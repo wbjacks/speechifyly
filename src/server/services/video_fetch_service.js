@@ -11,7 +11,6 @@ var VideoFetchService = function() {
             return new Promise(function(resolve) {
                 var writeStream = _fs.createWriteStream(mp4File);
                 writeStream.on('finish', resolve);
-                console.log(_ytdl(videoUrl, {quality: I_TAG}));
                 _ytdl(videoUrl, {quality: I_TAG}).pipe(writeStream);
                 resolve(mp4File);
             });

@@ -23,7 +23,6 @@ describe('Video Downloader', function() {
 	  
 
 		videoFetchService.getVideoForUrl(DUMMY_URL).then(function(file) {
-			console.log(file);
 			_assert.deepEqual(fs.readFileSync(file), test_vid);
 
 		   }).catch(function(error) {
