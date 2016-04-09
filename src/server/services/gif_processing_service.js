@@ -2,7 +2,7 @@ var GifProcessingService = function() {
     var _gifsicle = require('gifsicle');
 
     return {
-        convertVideoToGif(filePath, timeSegment) {
+        convertVideoToGif: function(filePath, timeSegment) {
             var gifFile = Date.now() + '.gif';
             return new Promise(function(resolve, reject) {
                 _gify(filePath, gifFile, timeSegment, function(err) {
@@ -27,4 +27,4 @@ var GifProcessingService = function() {
         }
     };
 }
-module.exports = GifProcessingService;
+module.exports = GifProcessingService();
