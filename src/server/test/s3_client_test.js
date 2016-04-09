@@ -1,16 +1,16 @@
-var aws    = require('aws-sdk');
-var assert = require('chai').assert;
-var sinon  = require('sinon');
-var stream = require('stream');
+var _aws    = require('aws-sdk'),
+    _assert = require('chai').assert,
+    _sinon  = require('sinon'),
+    _stream = require('stream');
 
-var s3Client = require('services/s3_client.js');
+var s3Client = new require('services/s3_client.js')();
 
 describe('S3 Client', function() {
-    var sandbox = sinon.sandbox.create();
-    var s3 = new aws.S3();
+    var s3 = new _aws.S3(),
+        sandbox = _sinon.sandbox.create();
 
     beforeEach(function() {
-        sandbox.stub(aws, 'S3').returns(s3);
+        sandbox.stub(_aws, 'S3').returns(s3);
     });
 
     afterEach(function() {
@@ -25,8 +25,8 @@ describe('S3 Client', function() {
             });
 
             s3Client.getBucketNames(function(err, bucketNames) {
-                assert.isUndefined(bucketNames);
-                assert.equal(returnedS3Error, err);
+                _assert.isUndefined(bucketNames);
+                _assert.equal(returnedS3Error, err);
                 done();
             });
         });
@@ -41,8 +41,8 @@ describe('S3 Client', function() {
 
             var expectedBucketNames = ['Name1', 'Name2'];
             s3Client.getBucketNames(function(err, bucketNames) {
-                assert.isUndefined(err);
-                assert.deepEqual(expectedBucketNames, bucketNames);
+                _assert.isUndefined(err);
+                _assert.deepEqual(expectedBucketNames, bucketNames);
                 done();
             });
         });
@@ -54,14 +54,14 @@ describe('S3 Client', function() {
 
             var returnedS3Error = 'SOME ERROR';
             sandbox.stub(s3, 'listObjects', function(objectInfo, callback) {
-                assert.equal(bucketName, objectInfo.Bucket);
-                assert.isUndefined(objectInfo.Marker);
+                _assert.equal(bucketName, objectInfo.Bucket);
+                _assert.isUndefined(objectInfo.Marker);
                 callback(returnedS3Error);
             });
 
             s3Client.getKeysInBucket(bucketName, function(err, keys) {
-                assert.equal(returnedS3Error, err);
-                assert.isUndefined(keys);
+                _assert.equal(returnedS3Error, err);
+                _assert.isUndefined(keys);
                 done();
             });
         });
@@ -79,7 +79,7 @@ describe('S3 Client', function() {
                 IsTruncated : false
             };
             sandbox.stub(s3, 'listObjects', function(objectInfo, callback) {
-                assert.equal(bucketName, objectInfo.Bucket);
+                _assert.equal(bucketName, objectInfo.Bucket);
                 if (!objectInfo.Marker) {
                     callback(undefined, firstResponse);
                 } else if (objectInfo.Marker == 2) {
@@ -89,8 +89,8 @@ describe('S3 Client', function() {
 
             var expectedKeys = ['Key1', 'Key2', 'Key3'];
             s3Client.getKeysInBucket(bucketName, function(err, keys) {
-                assert.isUndefined(err);
-                assert.deepEqual(expectedKeys, keys);
+                _assert.isUndefined(err);
+                _assert.deepEqual(expectedKeys, keys);
                 done();
             });
         });
@@ -102,12 +102,12 @@ describe('S3 Client', function() {
 
             var returnedS3Error = 'SOME ERROR';
             sandbox.stub(s3, 'createBucket', function(objectInfo, callback) {
-                assert.equal(newBucketName, objectInfo.Bucket);
+                _assert.equal(newBucketName, objectInfo.Bucket);
                 callback(returnedS3Error);
             });
 
             s3Client.createBucket(newBucketName, function(err) {
-                assert.equal(returnedS3Error, err);
+                _assert.equal(returnedS3Error, err);
                 done();
             });
         });
@@ -116,12 +116,12 @@ describe('S3 Client', function() {
             var newBucketName = 'BUCKET NAME';
 
             sandbox.stub(s3, 'createBucket', function(objectInfo, callback) {
-                assert.equal(newBucketName, objectInfo.Bucket);
+                _assert.equal(newBucketName, objectInfo.Bucket);
                 callback();
             });
 
             s3Client.createBucket(newBucketName, function(err) {
-                assert.isUndefined(err);
+                _assert.isUndefined(err);
                 done();
             });
         });
@@ -129,38 +129,38 @@ describe('S3 Client', function() {
 
     describe('putInBucket', function() {
         it('should call s3#upload and if there are errors, propagate them', function(done) {
-            var key = 'NEW KEY';
-            var valueStream = new stream.Readable('SOME STREAM');
-            var targetBucket = 'TARGET BUCKET';
+            var key = 'NEW KEY',
+                valueStream = new _stream.Readable('SOME STREAM'),
+                targetBucket = 'TARGET BUCKET';
 
             var returnedS3Error = 'SOME ERROR';
             sandbox.stub(s3, 'upload', function(objectInfo, callback) {
-                assert.equal(key, objectInfo.Key);
-                assert.equal(valueStream, objectInfo.Body);
-                assert.equal(targetBucket, objectInfo.Bucket);
+                _assert.equal(key, objectInfo.Key);
+                _assert.equal(valueStream, objectInfo.Body);
+                _assert.equal(targetBucket, objectInfo.Bucket);
                 callback(returnedS3Error);
             });
 
             s3Client.putInBucket(key, valueStream, targetBucket, function(err) {
-                assert.equal(returnedS3Error, err);
+                _assert.equal(returnedS3Error, err);
                 done();
             });
         });
 
         it('should call s3#upload and if there are no errors, do nothing', function(done) {
-            var key = 'NEW KEY';
-            var valueStream = new stream.Readable('SOME STREAM');
-            var targetBucket = 'TARGET BUCKET';
+            var key = 'NEW KEY',
+                valueStream = new _stream.Readable('SOME STREAM'),
+                targetBucket = 'TARGET BUCKET';
 
             sandbox.stub(s3, 'upload', function(objectInfo, callback) {
-                assert.equal(key, objectInfo.Key);
-                assert.equal(valueStream, objectInfo.Body);
-                assert.equal(targetBucket, objectInfo.Bucket);
+                _assert.equal(key, objectInfo.Key);
+                _assert.equal(valueStream, objectInfo.Body);
+                _assert.equal(targetBucket, objectInfo.Bucket);
                 callback();
             });
 
             s3Client.putInBucket(key, valueStream, targetBucket, function(err) {
-                assert.isUndefined(err);
+                _assert.isUndefined(err);
                 done();
             });
         });
@@ -168,34 +168,34 @@ describe('S3 Client', function() {
 
     describe('removeFromBucket', function() {
         it('should call s3#deleteObject and if there are errors, propagate them', function(done) {
-            var keyToDelete = 'KEY TO DELETE';
-            var containingBucket = 'CONTAINING BUCKET';
+            var keyToDelete = 'KEY TO DELETE',
+                containingBucket = 'CONTAINING BUCKET';
 
             var returnedS3Error = 'SOME ERROR';
             sandbox.stub(s3, 'deleteObject', function(objectInfo, callback) {
-                assert.equal(keyToDelete, objectInfo.Key);
-                assert.equal(containingBucket, objectInfo.Bucket);
+                _assert.equal(keyToDelete, objectInfo.Key);
+                _assert.equal(containingBucket, objectInfo.Bucket);
                 callback(returnedS3Error);
             });
 
             s3Client.removeFromBucket(keyToDelete, containingBucket, function(err) {
-                assert.equal(returnedS3Error, err);
+                _assert.equal(returnedS3Error, err);
                 done();
             });
         });
 
         it('should call s3#deleteObject and if there are no errors, do nothing', function(done) {
-            var keyToDelete = 'KEY TO DELETE';
-            var containingBucket = 'CONTAINING BUCKET';
+            var keyToDelete = 'KEY TO DELETE',
+                containingBucket = 'CONTAINING BUCKET';
 
             sandbox.stub(s3, 'deleteObject', function(objectInfo, callback) {
-                assert.equal(keyToDelete, objectInfo.Key);
-                assert.equal(containingBucket, objectInfo.Bucket);
+                _assert.equal(keyToDelete, objectInfo.Key);
+                _assert.equal(containingBucket, objectInfo.Bucket);
                 callback();
             });
 
             s3Client.removeFromBucket(keyToDelete, containingBucket, function(err) {
-                assert.isUndefined(err);
+                _assert.isUndefined(err);
                 done();
             });
         });
@@ -207,12 +207,12 @@ describe('S3 Client', function() {
 
             var returnedS3Error = 'SOME ERROR';
             sandbox.stub(s3, 'deleteBucket', function(objectInfo, callback) {
-                assert.equal(bucketToDelete, objectInfo.Bucket);
+                _assert.equal(bucketToDelete, objectInfo.Bucket);
                 callback(returnedS3Error);
             });
 
             s3Client.deleteBucket(bucketToDelete, function(err) {
-                assert.equal(returnedS3Error, err);
+                _assert.equal(returnedS3Error, err);
                 done();
             });
         });
@@ -221,12 +221,12 @@ describe('S3 Client', function() {
             var bucketToDelete = 'BUCKET TO DELETE';
 
             sandbox.stub(s3, 'deleteBucket', function(objectInfo, callback) {
-                assert.equal(bucketToDelete, objectInfo.Bucket);
+                _assert.equal(bucketToDelete, objectInfo.Bucket);
                 callback();
             });
 
             s3Client.deleteBucket(bucketToDelete, function(err) {
-                assert.isUndefined(err);
+                _assert.isUndefined(err);
                 done();
             });
         });

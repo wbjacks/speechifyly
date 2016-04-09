@@ -4,6 +4,7 @@
   "description": "speechify ur txt",
   "main": "app.js",
   "dependencies": {
+    "aws-sdk": "2.3.2",
     "chai": "3.5.0",
     "cheerio": "0.20.0",
     "express": "~3.0.0",
@@ -14,6 +15,7 @@
     "moment": "2.12.0",
     "nib": "^1.1.0",
     "nock": "7.2.2",
+    "sinon": "1.17.3",
     "stylus": "^0.54.2",
     "ytdl-core": "^0.7.10"
   },
