@@ -16,7 +16,10 @@ var S3Client = function() {
                 }
 
                 var bucketNames = data.Buckets.map(
-                    function(bucket) { return bucket.Name; });
+                    function(bucket) { 
+                        return bucket.Name; 
+                    }
+                );
 
                 callback(undefined, bucketNames);
             });
@@ -50,55 +53,35 @@ var S3Client = function() {
         createBucket: function(bucket, callback) {
             var s3 = new _aws.S3();
             s3.createBucket({Bucket: bucket}, function(err) {
-                if (err) {
-                    callback(err);
-                    return;
-                }
-                callback();
+                err ? callback(err) : callback();
             });
         },
 
         getFromBucket: function(key, bucket, callback) {
             var s3 = new _aws.S3();
             s3.getObject({Bucket: bucket, Key: key}, function(err, data) {
-                if (err) {
-                    callback(err);
-                    return;
-                }
-                callback(undefined, data);
+                err ? callback(err) : callback(undefined, data);
             });
         },
 
         putInBucket: function(key, valueStream, bucket, callback) {
             var s3 = new _aws.S3();
             s3.upload({Key: key, Body: valueStream, Bucket: bucket}, function(err, data) {
-                if (err) {
-                    callback(err);
-                    return;
-                }
-                callback(undefined, data);
+                err ? callback(err) : callback(undefined, data);
             });
         },
 
         removeFromBucket: function(key, bucket, callback) {
             var s3 = new _aws.S3();
             s3.deleteObject({Key: key, Bucket: bucket}, function(err) {
-                if (err) {
-                    callback(err);
-                    return;
-                }
-                callback();
+                err ? callback(err) : callback();
             });
         },
 
         deleteBucket: function(bucket, callback) {
             var s3 = new _aws.S3();
             s3.deleteBucket({Bucket: bucket}, function(err) {
-                if (err) {
-                    callback(err);
-                    return;
-                }
-                callback();
+                err ? callback(err) : callback();
             });
         }
     };

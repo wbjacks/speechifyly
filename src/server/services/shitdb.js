@@ -7,16 +7,20 @@ var ShitDb = function() {
 
     var db = {};
 
-    function getReadableDbStream() {
+    function _getReadableDbStream() {
         var rs = new stream.Readable();
         rs._read = function(numBytes) {
             rs.push(JSON.stringify(db));
-            rs.push(null);
+            _closeReadStream(rs);
         };
         return rs;
     }
 
-    function parseJSONFromResponseStream(dataStream) {
+    function _closeReadStream(readStream) {
+        readStream.push(null);
+    }
+
+    function _parseJSONFromResponseStream(dataStream) {
         return JSON.parse(dataStream.Body.toString());
     }
 
@@ -27,13 +31,13 @@ var ShitDb = function() {
                     callback(err);
                     return;
                 } 
-                db = parseJSONFromResponseStream(dataStream);
+                db = _parseJSONFromResponseStream(dataStream);
                 callback(undefined);
             });
         },
 
         persistDb: function(callback) {
-            _s3.putInBucket(S3_DB_KEY, getReadableDbStream(), S3_DB_BUCKET, function(err, response) {
+            _s3.putInBucket(S3_DB_KEY, _getReadableDbStream(), S3_DB_BUCKET, function(err, response) {
                 if (err) {
                     callback(err);
                     return;
