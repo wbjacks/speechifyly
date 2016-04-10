@@ -1,16 +1,25 @@
-var getWordsForSpeaker;
+var getWordsForSpeaker, getAllSpeakers;
 (function($) {
-    getWordsForSpeaker = function(speaker, isDebug) {
+    getWordsForSpeaker = function(speaker, successCallback, failCallback, isDebug) {
         if (isDebug) {
-            return ["the", "a", "for", "why", "how", "who", "apple", "amith",
-                "dumb", "is", "farts", "butts", "butt"];
+            successCallback(['the', 'a', 'for', 'why', 'how', 'who', 'apple',
+                'amith', 'dumb', 'is', 'farts', 'butts', 'butt']);
         }
         else {
-            return $.getJSON("/words", {speaker: speaker}).done(function(data) {
-                return data;
-            }).fail(function() {
-                return [];
-            });
+            $.getJSON('/words', {speaker: speaker}).done(function(data) {
+                successCallback(data.words);
+            }).fail(failCallback);
+        }
+    };
+
+    getAllSpeakers = function(successCallback, failCallback, isDebug) {
+        if (isDebug) {
+            successCallback(['bob', 'mike', 'sarah', 'michelle']);
+        }
+        else {
+            $.getJSON('/speakers').done(function(data) {
+                successCallback(data.speakers);
+            }).fail(failCallback);
         }
     }
 }(jQuery));
