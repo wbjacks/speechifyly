@@ -20,7 +20,9 @@
     "stylus": "^0.54.2",
     "ytdl-core": "^0.7.10"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "node-mocks-http": "^1.5.2"
+  },
   "scripts": {
     "test": "mocha ./src/server/test/*"
   },
