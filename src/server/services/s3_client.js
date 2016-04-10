@@ -93,4 +93,4 @@ var S3Client = function() {
 	};
 }
 
-module.exports = S3Client;
+module.exports = S3Client();

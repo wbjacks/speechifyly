@@ -3,7 +3,7 @@ var _aws    = require('aws-sdk'),
     _sinon  = require('sinon'),
     _stream = require('stream');
 
-var s3Client = new require('services/s3_client.js')();
+var s3Client = require('services/s3_client.js');
 
 describe('S3 Client', function() {
     var s3 = new _aws.S3(),
