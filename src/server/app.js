@@ -1,8 +1,8 @@
 /*
  * Module dependencies
  */
-var express = require('express');
-var db = require('shitdb');
+var express = require('express'),
+db = require('shitdb');
 //get in memory map from s3 now?
 var app;
 
@@ -32,14 +32,9 @@ app.get('/speakers', function (req, res) {
 
   //use in memory map for this part?
 
-  var data = {'words': ['a', 'b', 'cat', 'dog']};
   res.send(JSON.stringify(data));
 });
 
-server.get('/speakers', function (req, res) {
- var data = {'speakers': ['obama', 'osama', 'cat', 'dog']};
-  res.send(JSON.stringify(data));
-});
 
 app.get('/clips', function (req, res) {
 	var speaker = req.query.speaker;
@@ -50,7 +45,6 @@ app.get('/clips', function (req, res) {
   var data =   db.getS3KeysForWords(speaker, words); // [{"big": "s3key1"}, {"butts":"s3key2"}];
 
   res.setHeader('Content-Type', 'application/json');
- var data = [{'big': 's3key1'}, {'butts':'s3key2'}];
   res.send(JSON.stringify(data));
 });
 

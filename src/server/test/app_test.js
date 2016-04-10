@@ -9,7 +9,7 @@ var shitdbStub = {
     getWordsForSpeaker: function(speaker){ return {"words": ["a", "b", "cat", "dog"]}},
     getAllSpeakers: function(){return {"speakers": ["obama", "osama", "cat", "dog"]}},
     getS3KeysForWords: function(speaker, words){return [{"big": "s3key1"}, {"butts":"s3key2"}]},
-    '@noCallThru': true
+    //'@noCallThru': true
 };
 
 var app = proxyquire('../app', {
