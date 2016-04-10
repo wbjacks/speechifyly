@@ -6,11 +6,12 @@ var express = require('express');
 //get in memory map from s3 now?
 
 var server = express();
-server.use(express.static(__dirname + 'resources/static'));
+console.log(__dirname);
+server.use(express.static('./static'));
  
 server.get('/', function (req, res) {
-  res.sendFile('./resources/static/index.html');
-});
+  res.sendFile('index.html', {root: './static'});
+})
 
 server.get('/words', function (req, res) {
   var speaker = req.query.speaker;
@@ -35,8 +36,6 @@ server.get('/clips', function (req, res) {
  var data = [{"big": "s3key1"}, {"butts":"s3key2"}];
   res.send(JSON.stringify(data));
 });
-
-
 
 var port = process.env.PORT || 3000;
 server.listen(port, function() {
