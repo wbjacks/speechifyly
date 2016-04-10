@@ -127,6 +127,44 @@ describe('S3 Client', function() {
         });
     });
 
+    describe('getFromBucket', function() {
+        it('should call s3#getObject and if there are errors, propagate them', function(done) {
+            var key = 'SOME KEY',
+                bucket = 'SOME BUCKET';
+
+            var returnedS3Error = 'SOME ERROR';
+            sandbox.stub(s3, 'getObject', function(objectInfo, callback) {
+                _assert.equal(key, objectInfo.Key);
+                _assert.equal(bucket, objectInfo.Bucket);
+                callback(returnedS3Error);
+            });
+
+            s3Client.getFromBucket(key, bucket, function(err, valueStream) {
+                _assert.equal(returnedS3Error, err);
+                _assert.isUndefined(valueStream);
+                done();
+            });
+        });
+
+        it('should call s3#getObject and if there are no errors, return value stream', function(done) {
+            var key = 'SOME KEY',
+                bucket = 'SOME BUCKET';
+
+            var returnedStream = _stream.Readable('SOME STREAM');
+            sandbox.stub(s3, 'getObject', function(objectInfo, callback) {
+                _assert.equal(key, objectInfo.Key);
+                _assert.equal(bucket, objectInfo.Bucket);
+                callback(undefined, returnedStream);
+            });
+
+            s3Client.getFromBucket(key, bucket, function(err, valueStream) {
+                _assert.isUndefined(err);
+                _assert.equal(returnedStream, valueStream);
+                done();
+            });
+        });
+    });
+
     describe('putInBucket', function() {
         it('should call s3#upload and if there are errors, propagate them', function(done) {
             var key = 'NEW KEY',

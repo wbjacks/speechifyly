@@ -2,8 +2,8 @@ var S3Client = function() {
 	var _aws = require('aws-sdk');
 
 	// eventually need to move this stuff somewhere else (Vault?) but whatever 4 now
-	_aws.config.accessKeyId = '';
-	_aws.config.secretAccessKey = '';
+	_aws.config.accessKeyId = 'AKIAI7S5MMHPZCPO4Y6A';
+	_aws.config.secretAccessKey = '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';
 	_aws.config.region = 'us-west-2';
 
 	return {
@@ -55,6 +55,17 @@ var S3Client = function() {
 					return;
 				}
 				callback();
+			});
+		},
+
+		getFromBucket: function(key, bucket, callback) {
+			var s3 = new _aws.S3();
+			s3.getObject({Bucket: bucket, Key: key}, function(err, data) {
+				if (err) {
+					callback(err);
+					return;
+				}
+				callback(undefined, data);
 			});
 		},
 
