@@ -4,6 +4,7 @@
   "description": "speechify ur txt",
   "main": "app.js",
   "dependencies": {
+    "aws-sdk": "2.3.2",
     "chai": "3.5.0",
     "cheerio": "0.20.0",
     "express": "~3.0.0",
