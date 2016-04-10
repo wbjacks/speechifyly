@@ -97,7 +97,4 @@ describe('App Controller', function() {
 
         });        
     });
-
-
-    
 });
