@@ -1,100 +1,63 @@
-var    assert = require('chai').assert,
-    sinon  = require('sinon'),
-    spy = sinon.spy,
-    proxyquire = require('proxyquire'),
-    http_mocks = require('node-mocks-http');
-
-var shitdbStub = {
-    loadDB: function(callback){callback(undefined);},
-    getWordsForSpeaker: function(speaker){ return {"words": ["a", "b", "cat", "dog"]}},
-    getAllSpeakers: function(){return {"speakers": ["obama", "osama", "cat", "dog"]}},
-    getS3KeysForWords: function(speaker, words){return [{"big": "s3key1"}, {"butts":"s3key2"}]},
-    //'@noCallThru': true
-};
-
-var app = proxyquire('../app', {
-  shitdb: shitdbStub
-});
-
-// var app = require('../app.js');
-function buildResponse() {
-  return http_mocks.createResponse({eventEmitter: require('events').EventEmitter})
-}
+var _assert = require('chai').assert,
+    _sinon  = require('sinon'),
+    _shitDb = require('services/shitdb'),
+    _request = require('supertest');
 
 describe('App Controller', function() {
-   
+    var app, shitDbMock;
+    beforeEach(function() {
+        shitDbMock = _sinon.mock(_shitDb);
+        app = require('../app.js');
+    });
+
+    afterEach(function() {
+        shitDbMock.restore();
+    });
 
     describe('/words', function() {
         it('return a list of words for a speaker passed in as a query parm', function(done) {
-        var wordsForSpeakerSpy = spy(shitdbStub, 'getWordsForSpeaker');
+            shitDbMock.expects('getWordsForSpeaker')
+                .withExactArgs('obama')
+                .once()
+                .returns({"words": ["a", "b", "cat", "dog"]});
 
-        var response = buildResponse();
-        var request  = http_mocks.createRequest({
-          method: 'GET',
-          url: '/words',
-          query: {
-            speaker: 'obama'
-          }
-        });
-
-        response.on('end', function() {
-            assert(wordsForSpeakerSpy.calledWith("obama"));
-            assert(response._isJSON());
-            assert.deepEqual(JSON.parse(response._getData()), shitdbStub.getWordsForSpeaker());
-            done();
-        })
-
-        app.handle(request, response);
-            
+            _request(app).get('/words').query({speaker: 'obama'})
+                .expect('Content-Type', /json/)
+                .expect(function() {
+                    shitDbMock.verify();
+                })
+                .expect({"words": ["a", "b", "cat", "dog"]}, done);
         });
     });
 
     describe('/speakers', function() {
         it('return a list of speakers', function(done) {
-        var speakersSpy = spy(shitdbStub, 'getAllSpeakers');
+            shitDbMock.expects('getAllSpeakers').once()
+                .returns({"speakers": ["obama", "osama", "cat", "dog"]});
 
-        var response = buildResponse();
-        var request  = http_mocks.createRequest({
-          method: 'GET',
-          url: '/speakers',
-          
-        });
-
-        response.on('end', function() {
-            assert(speakersSpy.called);
-            assert(response._isJSON());
-            assert.deepEqual(JSON.parse(response._getData()), shitdbStub.getAllSpeakers());
-            done();
-        })
-
-        app.handle(request, response);
-            
+            _request(app).get('/speakers')
+                .expect('Content-Type', /json/)
+                .expect(function() {
+                    shitDbMock.verify();
+                })
+                .expect({"speakers": ["obama", "osama", "cat", "dog"]}, done);
         });
     });
 
- describe('/clips', function() {
-        it('return a list of clips for a speaker and words passed in as query parms', function(done) {
-        var clipsSpy = spy(shitdbStub, 'getS3KeysForWords');
-
-        var response = buildResponse();
-        var request  = http_mocks.createRequest({
-          method: 'GET',
-          url: '/clips',
-          query: {
-            speaker: 'obama',
-            words:'butts'
-          }
+    describe('/makeVideo', function() {
+        it('should return a map of word to keys for each unique word in a sentence', function() {
         });
+    });
 
-        response.on('end', function() {
-            assert(clipsSpy.calledWith("obama", "butts"));
-            assert(response._isJSON());
-            assert.deepEqual(JSON.parse(response._getData()), shitdbStub.getS3KeysForWords());
-            done();
+    describe('_getKeysForSentence', function() {
+        it('should return a list of unique S3 keys for a given sentence', function() {
+            shitDbMock.expects('getS3KeysForWords')
+                .withExactArgs('obama', ['one', 'two', 'three', 'four'])
+                .once()
+                .returns('success');
+            _assert.equal('success',
+                app._getKeysForSentence('obama', 'one two three two two four three'));
+            shitDbMock.verify();
         })
-
-        app.handle(request, response);
-
-        });        
     });
 });
