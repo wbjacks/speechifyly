@@ -52,6 +52,14 @@
                 </div>
             <div>
         </div>
+
+        <div class="video-player">
+            <video id="v" width="320" height="240" controls="true" autoplay>
+                <!-- <source src="./test_video.webm" type="video/webm"> -->
+                <!-- <source src="./test_video.mp4" type="video/mp4"> -->
+                <!-- <source src="/foo" type="video/mp4"> -->
+            </video>
+        </div>
     </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -64,6 +72,7 @@
 
     <!-- Library scripts -->
     <script src="./js/lib/awesomplete.min.js"></script>
+    <script src="./js/browserify/streamer_client.js"></script>
 
     <!-- Custom scripts -->
     <script src="./js/autocomplete.js"></script>
