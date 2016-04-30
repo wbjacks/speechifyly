@@ -26,6 +26,7 @@ build/Release
 # Dependency directory
 node_modules/*
 !node_modules/services
+!node_modules/util
 
 # Bundled deps (this is a bit weird sry)
 src/client/js/browserify
