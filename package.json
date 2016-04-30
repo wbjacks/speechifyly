@@ -11,12 +11,16 @@
     "gifsicle": "^3.0.3",
     "gify": "^0.2.0",
     "kontainer-di": "^0.9.8",
+    "mediasource": "^2.1.3",
     "mocha": "^2.4.5",
     "moment": "2.12.0",
     "nib": "^1.1.0",
     "nock": "7.2.2",
     "proxyquire": "^1.7.4",
     "sinon": "^1.17.3",
+    "socket.io": "^1.4.5",
+    "socket.io-client": "^1.4.5",
+    "socket.io-stream": "^0.9.0",
     "stylus": "^0.54.2",
     "ytdl-core": "^0.7.10"
   },
@@ -24,7 +28,9 @@
     "node-mocks-http": "^1.5.2"
   },
   "scripts": {
-    "test": "mocha ./src/server/test/*"
+    "test": "mocha ./src/server/test/*",
+    "bundle": "browserify ./src/client/js/streamer_client.js -o ./src/client/js/browserify/streamer_client.js",
+    "clean-launch": "npm run-script bundle && node ./src/server/app.js"
   },
   "repository": {
     "type": "git",
