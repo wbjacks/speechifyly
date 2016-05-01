@@ -7,6 +7,75 @@ var ShitDb = function() {
 
     var db = {};
 
+    function loadDb(callback) {
+        _s3.getFromBucket(S3_DB_KEY, S3_DB_BUCKET, function(err, dataStream) {
+                if (err) {
+                    callback(err);
+                    return;
+                } 
+                db = _parseJSONFromResponseStream(dataStream);
+                callback(undefined);
+            });
+    }
+
+    function persistDb(callback) {
+        _s3.putInBucket(S3_DB_KEY, _getReadableDbStream(), S3_DB_BUCKET, function(err, response) {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+                callback(undefined, response);
+            });
+    }
+
+    function getAllSpeakers() {
+        return Object.keys(db);
+    }
+
+    function getAllWords() {
+        var words = [];
+
+        getAllSpeakers().forEach(function(speaker) {
+            words = words.concat(getWordsForSpeaker(speaker));
+        });
+
+        return words;
+    }
+
+    function getWordsForSpeaker(speaker) {
+        return Object.keys(db[speaker]);
+    }
+
+    function getS3KeysForWords(speaker, words) {
+        var keysForWords = [];
+
+        words.forEach(function(word) {
+            var s3Key = db[speaker][word];
+            keysForWords.push(s3Key);
+        });
+
+        return keysForWords;
+    }
+
+    function addSpeaker(newSpeaker) {
+        if (db[newSpeaker]) {
+                throw "That speaker is already being tracked in the ShitDb!";
+            }
+        
+        db[newSpeaker] = {};
+    }
+
+    function addWordAndS3KeyForSpeaker(speaker, word, s3Key) {
+        if (db[speaker] && db[speaker][word]) {
+                throw "That speaker - word combination is already being tracked in the ShitDb!";
+            }
+
+        if (!db[speaker]) {
+            _addSpeaker(speaker);
+        }
+        db[speaker][word] = s3Key;
+    }
+
     function _getReadableDbStream() {
         var rs = new stream.Readable();
         rs._read = function(numBytes) {
@@ -25,73 +94,14 @@ var ShitDb = function() {
     }
 
     return {
-        loadDb: function(callback) {
-            _s3.getFromBucket(S3_DB_KEY, S3_DB_BUCKET, function(err, dataStream) {
-                if (err) {
-                    callback(err);
-                    return;
-                } 
-                db = _parseJSONFromResponseStream(dataStream);
-                callback(undefined);
-            });
-        },
-
-        persistDb: function(callback) {
-            _s3.putInBucket(S3_DB_KEY, _getReadableDbStream(), S3_DB_BUCKET, function(err, response) {
-                if (err) {
-                    callback(err);
-                    return;
-                }
-                callback(undefined, response);
-            });
-        },
-
-        getAllSpeakers: function() {
-            return Object.keys(db);
-        },
-
-        getAllWords: function() {
-            var words = [];
-
-            getAllSpeakers().forEach(function(speaker) {
-                words.push(getWordsForSpeaker(speaker));
-            });
-
-            return words;
-        },
-
-        getWordsForSpeaker: function(speaker) {
-            return Object.keys(db[speaker]);
-        },
-
-        getS3KeysForWords: function(speaker, words) {
-            var keysForWords = [];
-
-            words.forEach(function(word) {
-                var s3Key = db[speaker][word];
-                keysForWords.push(s3Key);
-            });
-
-            return keysForWords;
-        },
-
-        addSpeaker: function(newSpeaker) {
-            if (db[newSpeaker]) {
-                throw "That speaker is already being tracked in the ShitDb!";
-            }
-            db[newSpeaker] = {};
-        },
-
-        addWordAndS3KeyForSpeaker: function(speaker, word, s3Key) {
-            if (db[speaker] && db[speaker][word]) {
-                throw "That speaker - word combination is already being tracked in the ShitDb!";
-            }
-
-            if (!db[speaker]) {
-                addSpeaker(speaker);
-            }
-            db[speaker][word] = s3Key;
-        }
+        loadDb: loadDb,
+        persistDb: persistDb,
+        getAllSpeakers: getAllSpeakers,   
+        getAllWords: getAllWords,
+        getWordsForSpeaker: getWordsForSpeaker,
+        getS3KeysForWords: getS3KeysForWords,
+        addSpeaker: addSpeaker,
+        addWordAndS3KeyForSpeaker: addWordAndS3KeyForSpeaker
     }
 }
 
