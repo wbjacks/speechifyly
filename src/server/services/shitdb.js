@@ -77,7 +77,7 @@ var ShitDb = function() {
     }
 
     function _getReadableDbStream() {
-        var rs = new stream.Readable();
+        var rs = new _stream.Readable();
         rs._read = function(numBytes) {
             rs.push(JSON.stringify(db));
             _closeReadStream(rs);
