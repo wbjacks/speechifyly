@@ -1,3 +1,5 @@
+'use strict';
+
 // Builds an unbalanced, full binary tree
 var BiTree = function(leafSet) {
     // Constructor
@@ -59,13 +61,34 @@ var BiTree = function(leafSet) {
             return leaf1.concat(leaf2);
         });
     }
+
+    // TODO: (wbjacks) could probably hash this but w/e
+    this.prototype.getNodeAtId = function(id) {
+        return _bfsDigest(this.root, function(){},
+        function(node) {
+            return node.id === id || node.isLeaf();
+        },
+        function(node) {
+            if (node !== null && node.id === id) {
+                return node
+            }
+            return null;
+        },
+        function(node1, node2) {
+            return node1 === null ? node2 : node1;
+        })
+    }
 };
 
-class __Node() {
+class __Node {
     constructor(data, children) {
         this.data = data;
         this.children = children;
         this.parent = parent;
+    }
+
+    get parent() {
+        return this.parent.data;
     }
 
     set parent(parent) {

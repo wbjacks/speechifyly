@@ -13,27 +13,18 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
         _isManagerComplete = false;
 
     this.isWorkComplete = false; // ehhhh this needs to be tested sry
+    this.generator = null;
+    this.completionCallback = null;
 
     // TODO: (wbjacks) needs a lock for editing calls
 
-    for (var i = 0; i < _numberOfWorkers; i++) {
-        var worker = _childProcess.fork(workerFile);
-        _workerQueue.push(worker);
-        worker.on('message', function(message) {
-            _messageHandler(worker, message);
-        });
-        
-    } 
 
     // Privates
     function _messageHandler(worker, message) {
         switch(message.tag) {
             case 'WORKER_DONE':
-                _handleIdleWorker(worker);
-                break;
-            case 'WORK_COMPLETE':
-                self.isWorkComplete = true;
-                _handleIdleWorker(worker);
+                self.generator(message.data);
+                _handleIdleWorker(worker, message.data);
                 break;
             case 'ADD_JOB':
                 self.addJob(message.data);
@@ -44,13 +35,13 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
         }
     }
 
-    function _handleIdleWorker(worker) {
+    function _handleIdleWorker(worker, data) {
         if (self.isWorkComplete) {
             worker.kill();
             _killedWorkers.push(worker);
             if (_killedWorkers.length === _numberOfWorkers) {
                 _killedWorkers = []; // garbage collect
-                _isManagerComplete = true;
+                self.completionCallback(data);
             }
         }
         else {
@@ -92,6 +83,17 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
     this.getNumberOfKilledWorkers = function() {
         return _killedWorkers.length;
     };
+
+    this.launch = function() {
+        for (var i = 0; i < _numberOfWorkers; i++) {
+            var worker = _childProcess.fork(workerFile);
+            _workerQueue.push(worker);
+            worker.on('message', function(message) {
+                _messageHandler(worker, message);
+            });
+            
+        } 
+    }
 };
 
 
@@ -101,13 +103,9 @@ var __Job = function(data) {
 
 var Worker = function(doWork, workComplete, process) {
     process.on('message', function(message) {
-        if (workComplete(message.data)) {
-            process.send({tag: 'WORK_COMPLETE'});
-        }
-        else {
-            doWork(message.data);
-            process.send({tag: 'WORKER_DONE'});
-        }
+        doWork(message.data, function(data) {
+            process.send({tag: 'WORKER_DONE', data: data});
+        });
     });
 };
 
