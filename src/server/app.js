@@ -79,7 +79,8 @@ app.get('/speakers', function (req, res) {
 
 app.get('/makeVideo', function (req, res) {
     res.setHeader('Content-Type', 'application/json');
-    _videoAssemblerService.makeVideo(req.query.speaker, req.query.sentence)
+    //_videoAssemblerService.makeVideo(req.query.speaker, req.query.sentence)
+    _videoAssemblerService.AHHHHHHHHH()
         .then(function(fileName) {
             res.send(JSON.stringify({file: fileName}));
         });

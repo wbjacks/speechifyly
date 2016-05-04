@@ -1,14 +1,17 @@
+'use strict';
+
 var _childProcess = require('child_process');
 
 var Manager = function(numberOfWorkers, workerFile, initialData) {
     var self = this;
 
     // Constructor
-    var _jobQueue = initialData ? initialData.map(function (initialDatum) {
+    var _initialJobs = initialData ? initialData.map(function (initialDatum) {
             return new __Job(initialDatum);
         }) : [],
         _workerQueue = [],
         _killedWorkers = [],
+        _jobQueue = [],
         _numberOfWorkers = numberOfWorkers,
         _isManagerComplete = false;
 
@@ -20,11 +23,11 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
 
 
     // Privates
-    function _messageHandler(worker, message) {
+    function _messageHandler(worker, message, resolve) {
         switch(message.tag) {
             case 'WORKER_DONE':
                 self.generator(message.data);
-                _handleIdleWorker(worker, message.data);
+                _handleIdleWorker(worker, message.data, resolve);
                 break;
             case 'ADD_JOB':
                 self.addJob(message.data);
@@ -35,18 +38,27 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
         }
     }
 
-    function _handleIdleWorker(worker, data) {
+    function _handleIdleWorker(worker, data, resolve) {
         if (self.isWorkComplete) {
-            worker.kill();
-            _killedWorkers.push(worker);
+            _killWorker(worker);
+            _workerQueue.forEach(function(worker) {
+                _killWorker(worker);
+            });
+            
             if (_killedWorkers.length === _numberOfWorkers) {
                 _killedWorkers = []; // garbage collect
-                self.completionCallback(data);
+                console.log('Resolving manager with data: ' + JSON.stringify(data));
+                resolve(data);
             }
         }
         else {
-            _workerQueue.unshift(worker);
+            _matchWorkerToJobOrEnqueue(worker);
         }
+    }
+
+    function _killWorker(worker) {
+        worker.kill();
+        _killedWorkers.push(worker);
     }
 
     function _matchWorkerToJobOrEnqueue(worker) {
@@ -54,16 +66,23 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
             _workerQueue.unshift(worker);
         }
         else {
-            worker.send(_jobQueue.pop().data); // TODO: (wbjacks) tag outgoing messages?
+            var message = _jobQueue.pop();
+            console.log("Sending message to PID#" + worker.pid + ": " +
+                JSON.stringify(message));
+            worker.send(message.data); // TODO: (wbjacks) tag outgoing messages?
         }
     }
 
     function _matchJobToWorkerOrEnqueue(job) {
         if (_workerQueue.length === 0) {
+            console.log("Enqueueing job: " + JSON.stringify(job));
             _jobQueue.unshift(job);
         }
         else {
-            _workerQueue.pop().send(job);
+            var worker = _workerQueue.pop();
+            console.log("Sending message to PID#" + worker.pid + ": " +
+                JSON.stringify(job.data));
+            worker.send(job.data);
         }
     }
 
@@ -85,26 +104,38 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
     };
 
     this.launch = function() {
-        for (var i = 0; i < _numberOfWorkers; i++) {
-            var worker = _childProcess.fork(workerFile);
-            _workerQueue.push(worker);
-            worker.on('message', function(message) {
-                _messageHandler(worker, message);
-            });
-            
-        } 
+        return new Promise(function(resolve, reject) {
+            for (var i = 0; i < _numberOfWorkers; i++) {
+                var worker = _childProcess.fork(workerFile);
+                _workerQueue.push(worker);
+                worker.on('message', function(message) {
+                    _messageHandler(worker, message, resolve);
+                });
+            } 
+            while(_initialJobs.length !== 0) {
+                _matchJobToWorkerOrEnqueue(_initialJobs.pop());
+            }
+        });
     }
 };
 
 
-var __Job = function(data) {
-    this.data = data;
+class __Job {
+    constructor(data) {
+        this.data = data;
+    }
 };
 
-var Worker = function(doWork, workComplete, process) {
+var Worker = function(doWork, process) {
+    console.log('Process spawned with PID ' + process.pid);
     process.on('message', function(message) {
-        doWork(message.data, function(data) {
-            process.send({tag: 'WORKER_DONE', data: data});
+        console.log("Process PID#" + process.pid + " received message: " +
+            JSON.stringify(message));
+        doWork(message, function(data) {
+            var message = {tag: 'WORKER_DONE', data: data};
+            console.log("Process PID#" + process.pid + "sending message: " +
+                JSON.stringify(message));
+            process.send(message);
         });
     });
 };

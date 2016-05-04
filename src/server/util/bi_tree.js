@@ -1,26 +1,26 @@
 'use strict';
 
 // Builds an unbalanced, full binary tree
-var BiTree = function(leafSet) {
+var BiTree = function(leafSet, emptyNodeClass) {
     // Constructor
-    var root = _bfsDigest(new __Node(), function(node) {
-        if (node.parent.children.indexOf(node) === 0) {
-            node.children = [new __Node(), new __Node(leafSet.pop(), [])];
+    var _root = _bfsDigest(new __Node(new emptyNodeClass), function(node) {
+        if (node.isRoot() || node.parent.children.indexOf(node) === 0) {
+            node.children = [new __Node(new emptyNodeClass), new __Node(leafSet.pop(), [])];
             node.children[0].parent = node;
             node.children[1].parent = node;
+            if (leafSet.length === 1) {
+                node.children[0].data = leafSet.pop();
+            }
         }
     },
     function(node) {
-        return node.data || leafSet.length === 1;
-    },
-    function(node) {
-        if (leafSet.length === 1) {
-            node.data = leafSet.pop();
-        }
-        return;
+        return (node.parent && node.parent.children.indexOf(node) === 1) || leafSet.length === 0;
     },
     function(node) {
         return node;
+    },
+    function(node) {
+        return node.parent;
     });
 
 
@@ -41,19 +41,20 @@ var BiTree = function(leafSet) {
 
     // Private methods
     function _bfsDigest(node, action, evaluate, complete, reduce) {
+        // TODO: (wbjacks) close over callbacks
         action(node);
         if (evaluate(node)) {
             return complete(node);
         }
         else {
-            return reduce(_dfsDigest(node.children[0]), _dfsDigest(node.children[1]),
-                node);
+            return reduce(_bfsDigest(node.children[0], action, evaluate, complete, reduce),
+                _bfsDigest(node.children[1], action, evaluate, complete, reduce), node);
         }
     }
 
     // Public methods
-    this.prototype.getLeaves = function() {
-        return _bfsDigest(this.root, function(node) {
+    this.getLeaves = function() {
+        return _bfsDigest(_root, function() {}, function(node) {
             return node.isLeaf();
         }, function(node) {
             return [node];
@@ -63,8 +64,8 @@ var BiTree = function(leafSet) {
     }
 
     // TODO: (wbjacks) could probably hash this but w/e
-    this.prototype.getNodeAtId = function(id) {
-        return _bfsDigest(this.root, function(){},
+    this.getNodeAtId = function(id) {
+        return _bfsDigest(_root, function(){},
         function(node) {
             return node.id === id || node.isLeaf();
         },
@@ -78,30 +79,41 @@ var BiTree = function(leafSet) {
             return node1 === null ? node2 : node1;
         })
     }
+
 };
 
 class __Node {
     constructor(data, children) {
         this.data = data;
-        this.children = children;
-        this.parent = parent;
-    }
-
-    get parent() {
-        return this.parent.data;
+        this.children = children ? children : [];
+        this.id = 1;
     }
 
     set parent(parent) {
-        this.parent = parent;
+        this._parent = parent;
         this.id = (parent.id << 1) + parent.children.indexOf(this);
     }
 
+    get parent() {
+        return this._parent;
+    }
+
     isRoot() {
-        return this.parent === null;
+        return !!!this.parent;
     }
 
     isLeaf() {
         return this.children.length === 0;
+    }
+
+    serialize() {
+        return {
+            id: this.id,
+            data: this.data,
+            children: this.children.map(function(child) {
+                return child.serialize();
+            })
+        };
     }
 }
 

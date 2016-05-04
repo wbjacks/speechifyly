@@ -21,7 +21,7 @@ describe('Manager', function() {
         childProcessMock.verify();
         childProcessMock.restore();
     });
-        
+
     describe('upon Manager construction', function() {
         it('should create numberOfWorkers workers at given filepath', function() {
             childProcessMock.expects('fork')
