@@ -1,6 +1,6 @@
 var _assert = require('chai').assert,
     _sinon  = require('sinon'),
-    _temp = require('temp');
+    _tmp = require('tmp');
 
 describe('VideoAssemblerService', function() {
     describe('_getKeysForSentence', function() {

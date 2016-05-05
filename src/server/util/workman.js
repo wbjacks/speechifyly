@@ -1,6 +1,7 @@
 'use strict';
 
-var _childProcess = require('child_process');
+var _childProcess = require('child_process'),
+DEBUG = false; // TODO: (wbjacks) set this from environment
 
 var Manager = function(numberOfWorkers, workerFile, initialData) {
     var self = this;
@@ -29,6 +30,7 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
                 self.generator(message.data);
                 _handleIdleWorker(worker, message.data, resolve);
                 break;
+            // TODO: (wbjacks) unneeded?
             case 'ADD_JOB':
                 self.addJob(message.data);
                 break;
@@ -47,7 +49,7 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
             
             if (_killedWorkers.length === _numberOfWorkers) {
                 _killedWorkers = []; // garbage collect
-                console.log('Resolving manager with data: ' + JSON.stringify(data));
+                _log('Resolving manager with data: ' + JSON.stringify(data));
                 resolve(data);
             }
         }
@@ -67,7 +69,7 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
         }
         else {
             var message = _jobQueue.pop();
-            console.log("Sending message to PID#" + worker.pid + ": " +
+            _log("Sending message to PID#" + worker.pid + ": " +
                 JSON.stringify(message));
             worker.send(message.data); // TODO: (wbjacks) tag outgoing messages?
         }
@@ -75,12 +77,12 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
 
     function _matchJobToWorkerOrEnqueue(job) {
         if (_workerQueue.length === 0) {
-            console.log("Enqueueing job: " + JSON.stringify(job));
+            _log("Enqueueing job: " + JSON.stringify(job));
             _jobQueue.unshift(job);
         }
         else {
             var worker = _workerQueue.pop();
-            console.log("Sending message to PID#" + worker.pid + ": " +
+            _log("Sending message to PID#" + worker.pid + ": " +
                 JSON.stringify(job.data));
             worker.send(job.data);
         }
@@ -127,18 +129,22 @@ class __Job {
 };
 
 var Worker = function(doWork, process) {
-    console.log('Process spawned with PID ' + process.pid);
+    _log('Process spawned with PID ' + process.pid);
     process.on('message', function(message) {
-        console.log("Process PID#" + process.pid + " received message: " +
+        _log("Process PID#" + process.pid + " received message: " +
             JSON.stringify(message));
         doWork(message, function(data) {
             var message = {tag: 'WORKER_DONE', data: data};
-            console.log("Process PID#" + process.pid + "sending message: " +
+            _log("Process PID#" + process.pid + "sending message: " +
                 JSON.stringify(message));
             process.send(message);
         });
     });
 };
+
+function _log(msg) {
+    if (DEBUG) console.log(msg);
+}
 
 module.exports = {
     Manager: Manager,

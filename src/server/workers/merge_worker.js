@@ -25,7 +25,12 @@ function _doMerge(file1, file2, nodeId, complete) {
         }),
         manifest = _tmp.tmpNameSync({
             dir: _path.resolve('./tmp/')
-        });
+        }),
+        printFileDeletionErrors = function(err, file) {
+            if (err) {
+                console.error('Error deleting file ' + file + ': ' + err);
+            }
+        };
     _fs.writeFile(manifest, "file '" + file1 + "'" + _os.EOL + "file '" + file2 + "'");
 
     var ffmpeg = _childProcess.spawn('ffmpeg', [
@@ -35,22 +40,18 @@ function _doMerge(file1, file2, nodeId, complete) {
         '-y', mergedFileName
     ]);
 
-    ffmpeg.stdout.on('data', function(data) {
-        console.log("Spawn: " + data);
-    });
-
     ffmpeg.on('close', function(exitCode) {
         if (exitCode === 0) {
             _fs.unlink(file1, function(err) {
-                if (err) {
-                    console.error('Error deleting file ' + file1 + ': ' + err);
-                }
+                printFileDeletionErrors(err, file1);
             });
 
             _fs.unlink(file2, function(err) {
-                if (err) {
-                    console.error('Error deleting file ' + file2 + ': ' + err);
-                }
+                printFileDeletionErrors(err, file2);
+            });
+
+            _fs.unlink(manifest, function(err) {
+                printFileDeletionErrors(err, manifest);
             });
             complete({file: mergedFileName, nodeId: nodeId});
         }
