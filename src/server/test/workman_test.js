@@ -21,14 +21,14 @@ describe('Manager', function() {
         childProcessMock.verify();
         childProcessMock.restore();
     });
-        
-    describe('upon Manager construction', function() {
+
+    describe('method launch', function() {
         it('should create numberOfWorkers workers at given filepath', function() {
             childProcessMock.expects('fork')
                 .withExactArgs('foo.bar')
                 .thrice()
                 .returns({on: function() {}});
-            new Manager(3, 'foo.bar');
+            new Manager(3, 'foo.bar').launch();
         });
     });
 
@@ -43,14 +43,17 @@ describe('Manager', function() {
                 .once()
                 .returns(mockWorkerData);
             var mockWorker = _sinon.mock(mockWorkerData).expects('send')
-                .withExactArgs({data: job})
+                .withExactArgs(job)
                 .once();
-            new Manager(1).addJob(job);
+            var manager = new Manager(1);
+            manager.launch();
+            manager.addJob(job);
             mockWorker.verify();
         });
 
         it('should enqueue job if no idle workers are present', function() {
             var manager = new Manager(0);
+            manager.launch()
             manager.addJob({});
             _assert.equal(manager.getJobQueueSize(), 1);
         });
@@ -59,6 +62,7 @@ describe('Manager', function() {
     describe('method getJobQueueSize', function() {
         it('should return size of job queue', function() {
             var manager = new Manager(0, null, [{}]);
+            manager.launch();
             _assert.equal(manager.getJobQueueSize(), 1);
         });
     });
@@ -66,7 +70,8 @@ describe('Manager', function() {
     describe('message handling', function() {
         var manager, worker;
 
-        describe('for message tagged ADD_JOB', function() {
+        // TODO: (wbjacks) unneeded?
+        describe.skip('for message tagged ADD_JOB', function() {
             beforeEach(function() {
                 worker = new FakeEmitter();
                 childProcessMock.expects('fork')
@@ -87,31 +92,6 @@ describe('Manager', function() {
             });
         });
 
-        describe('for message tagged WORK_COMPLETE', function() {
-            beforeEach(function() {
-                worker = new FakeEmitter();
-                worker.kill = function() {};
-                childProcessMock.expects('fork')
-                    .twice()
-                    .onFirstCall().returns(worker)
-                    .onSecondCall().returns({on: function() {}, kill: function(){}});
-                manager = new Manager(2);
-                worker.emit('message', {tag: 'WORK_COMPLETE'});
-            });
-
-            afterEach(function() {
-                delete worker.kill;
-            });
-
-            it('should set isWorkComplete to true', function() {
-                _assert.isTrue(manager.isWorkComplete);
-            })
-
-            it('should add dead worker to killed queue', function() {
-                _assert.equal(manager.getNumberOfKilledWorkers(), 1);
-            })
-        });
-
         describe('for message tagged WORKER_DONE', function() {
             beforeEach(function() {
                 worker = new FakeEmitter();
@@ -121,6 +101,8 @@ describe('Manager', function() {
                     .once()
                     .returns(worker);
                 manager = new Manager(1);
+                manager.generator = function() {};
+                manager.launch();
             }); 
 
             afterEach(function() {
@@ -138,7 +120,7 @@ describe('Manager', function() {
                 manager.isWorkComplete = true; // TODO: (wbjacks) should not be able to set
                 var workerSpy = _sinon.spy(worker, 'kill');
                 worker.emit('message', {tag: 'WORKER_DONE'});
-                _assert.isTrue(workerSpy.calledOnce);
+                _assert.isTrue(workerSpy.calledTwice); // worker is in queue and passed in
             });
         });
     });
@@ -152,25 +134,16 @@ describe('Worker', function() {
             fakeProcess.send = function() {};
         });
 
-        it('should send message tagged WORK_COMPLETE if workComplete callback ' +
-            'evaluates true', function()
-        {
+        it('should run doWork and send message tagged WORKER_DONE', function() {
             var processSpy = _sinon.spy(fakeProcess, 'send')
-                .withArgs({tag: 'WORK_COMPLETE'});
-            new Worker(null, function() {return true;}, fakeProcess);
-            fakeProcess.emit('message', {data: null});
-            _assert.isTrue(processSpy.calledOnce);
-        });
+                    .withArgs({tag: 'WORKER_DONE', data: 'foo'}),
+                doWork = function(msg, cb) {
+                    cb(msg);
+                },
+                doWorkSpy = _sinon.spy(doWork);
+            new Worker(doWorkSpy, fakeProcess);
 
-        it('should run doWork and send message tagged WORKER_DONE if workComplete ' +
-            'callback evaluates false', function()
-        {
-            var processSpy = _sinon.spy(fakeProcess, 'send')
-                    .withArgs({tag: 'WORKER_DONE'}),
-                doWorkSpy = _sinon.spy(function() {}).withArgs('foo');
-            new Worker(doWorkSpy, function() {return false;}, fakeProcess);
-
-            fakeProcess.emit('message', {data: 'foo'});
+            fakeProcess.emit('message', 'foo');
             _assert.isTrue(processSpy.calledOnce);
             _assert.isTrue(doWorkSpy.calledOnce);
         });

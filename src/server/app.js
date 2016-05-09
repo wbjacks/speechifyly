@@ -6,7 +6,8 @@ var express = require('express'),
     _fs = require('fs'),
     _path = require('path'),
     _io = require('socket.io'),
-    _ioStream = require('socket.io-stream');
+    _ioStream = require('socket.io-stream'),
+    _videoAssemblerService = require('services/video_assembler_service');
 
 //get in memory map from s3 now?
 var app = express();
@@ -77,10 +78,12 @@ app.get('/speakers', function (req, res) {
 });
 
 app.get('/makeVideo', function (req, res) {
-    var speaker = req.query.speaker;
-
     res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify(data));
+    //_videoAssemblerService.makeVideo(req.query.speaker, req.query.sentence)
+    _videoAssemblerService.AHHHHHHHHH()
+        .then(function(fileName) {
+            res.send(JSON.stringify({file: fileName}));
+        });
 });
 
 // TODO: (wjackson) move out of app.js

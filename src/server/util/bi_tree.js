@@ -1,24 +1,30 @@
+'use strict';
+
 // Builds an unbalanced, full binary tree
-var BiTree = function(leafSet) {
+var BiTree = function(leafSet, emptyNodeClass) {
     // Constructor
-    var root = _bfsDigest(new __Node(), function(node) {
-        if (node.parent.children.indexOf(node) === 0) {
-            node.children = [new __Node(), new __Node(leafSet.pop(), [])];
-            node.children[0].parent = node;
-            node.children[1].parent = node;
-        }
-    },
+    var _root = _bfsDigest(new __Node(emptyNodeClass ? new emptyNodeClass : undefined),
+        function(node) {
+            if (node.isRoot() || node.parent.children.indexOf(node) === 0) {
+                node.children = [
+                    new __Node(emptyNodeClass ? new emptyNodeClass : undefined),
+                    new __Node(leafSet.pop(), [])
+                ];
+                node.children[0].parent = node;
+                node.children[1].parent = node;
+                if (leafSet.length === 1) {
+                    node.children[0].data = leafSet.pop();
+                }
+            }
+        },
     function(node) {
-        return node.data || leafSet.length === 1;
-    },
-    function(node) {
-        if (leafSet.length === 1) {
-            node.data = leafSet.pop();
-        }
-        return;
+        return (node.parent && node.parent.children.indexOf(node) === 1) || leafSet.length === 0;
     },
     function(node) {
         return node;
+    },
+    function(node) {
+        return node.parent;
     });
 
 
@@ -39,19 +45,20 @@ var BiTree = function(leafSet) {
 
     // Private methods
     function _bfsDigest(node, action, evaluate, complete, reduce) {
+        // TODO: (wbjacks) close over callbacks
         action(node);
         if (evaluate(node)) {
             return complete(node);
         }
         else {
-            return reduce(_dfsDigest(node.children[0]), _dfsDigest(node.children[1]),
-                node);
+            return reduce(_bfsDigest(node.children[0], action, evaluate, complete, reduce),
+                _bfsDigest(node.children[1], action, evaluate, complete, reduce), node);
         }
     }
 
     // Public methods
-    this.prototype.getLeaves = function() {
-        return _bfsDigest(this.root, function(node) {
+    this.getLeaves = function() {
+        return _bfsDigest(_root, function() {}, function(node) {
             return node.isLeaf();
         }, function(node) {
             return [node];
@@ -59,26 +66,62 @@ var BiTree = function(leafSet) {
             return leaf1.concat(leaf2);
         });
     }
+
+    // TODO: (wbjacks) could probably hash this but w/e
+    this.getNodeAtId = function(id) {
+        return _bfsDigest(_root, function(){},
+        function(node) {
+            return node.id === id || node.isLeaf();
+        },
+        function(node) {
+            if (node !== null && node.id === id) {
+                return node
+            }
+            return null;
+        },
+        function(node1, node2) {
+            return node1 === null ? node2 : node1;
+        })
+    }
+
+    this.toString = function() {
+        return _root.serialize();
+    }
+
 };
 
-class __Node() {
+class __Node {
     constructor(data, children) {
         this.data = data;
-        this.children = children;
-        this.parent = parent;
+        this.children = children ? children : [];
+        this.id = 1;
     }
 
     set parent(parent) {
-        this.parent = parent;
+        this._parent = parent;
         this.id = (parent.id << 1) + parent.children.indexOf(this);
     }
 
+    get parent() {
+        return this._parent;
+    }
+
     isRoot() {
-        return this.parent === null;
+        return !!!this.parent;
     }
 
     isLeaf() {
         return this.children.length === 0;
+    }
+
+    serialize() {
+        return {
+            id: this.id,
+            data: this.data,
+            children: this.children.map(function(child) {
+                return child.serialize();
+            })
+        };
     }
 }
 
