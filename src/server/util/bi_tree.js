@@ -3,16 +3,20 @@
 // Builds an unbalanced, full binary tree
 var BiTree = function(leafSet, emptyNodeClass) {
     // Constructor
-    var _root = _bfsDigest(new __Node(new emptyNodeClass), function(node) {
-        if (node.isRoot() || node.parent.children.indexOf(node) === 0) {
-            node.children = [new __Node(new emptyNodeClass), new __Node(leafSet.pop(), [])];
-            node.children[0].parent = node;
-            node.children[1].parent = node;
-            if (leafSet.length === 1) {
-                node.children[0].data = leafSet.pop();
+    var _root = _bfsDigest(new __Node(emptyNodeClass ? new emptyNodeClass : undefined),
+        function(node) {
+            if (node.isRoot() || node.parent.children.indexOf(node) === 0) {
+                node.children = [
+                    new __Node(emptyNodeClass ? new emptyNodeClass : undefined),
+                    new __Node(leafSet.pop(), [])
+                ];
+                node.children[0].parent = node;
+                node.children[1].parent = node;
+                if (leafSet.length === 1) {
+                    node.children[0].data = leafSet.pop();
+                }
             }
-        }
-    },
+        },
     function(node) {
         return (node.parent && node.parent.children.indexOf(node) === 1) || leafSet.length === 0;
     },
@@ -78,6 +82,10 @@ var BiTree = function(leafSet, emptyNodeClass) {
         function(node1, node2) {
             return node1 === null ? node2 : node1;
         })
+    }
+
+    this.toString = function() {
+        return _root.serialize();
     }
 
 };

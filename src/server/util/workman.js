@@ -146,7 +146,14 @@ function _log(msg) {
     if (DEBUG) console.log(msg);
 }
 
+// TODO: (wbjacks) remove constructor export
 module.exports = {
     Manager: Manager,
-    Worker: Worker
+    Worker: Worker,
+    getWorkerInstance: function(doWork, process) {
+        return new Worker(doWork, process);
+    },
+    getManagerInstance: function(numberOfWorkers, workerFile, initialData) {
+        return new Manager(numberOfWorkers, workerFile, initialData);
+    }
 };
