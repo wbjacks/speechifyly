@@ -7,25 +7,29 @@ var ShitDb = function() {
 
     var db = {};
 
-    function loadDb(callback) {
-        _s3.getFromBucket(S3_DB_KEY, S3_DB_BUCKET, function(err, dataStream) {
+    function loadDb() {
+        return new Promise(function(resolve) {
+            _s3.getFromBucket(S3_DB_KEY, S3_DB_BUCKET, function(err, dataStream) {
                 if (err) {
-                    callback(err);
+                    resolve(err);
                     return;
                 } 
                 db = _parseJSONFromResponseStream(dataStream);
-                callback(undefined);
+                resolve(undefined);
             });
+        });
     }
 
-    function persistDb(callback) {
-        _s3.putInBucket(S3_DB_KEY, _getReadableDbStream(), S3_DB_BUCKET, function(err, response) {
+    function persistDb() {
+        return new Promise(function(resolve) {
+            _s3.putInBucket(S3_DB_KEY, _getReadableDbStream(), S3_DB_BUCKET, function(err, response) {
                 if (err) {
-                    callback(err);
+                    resolve(err);
                     return;
                 }
-                callback(undefined, response);
+                resolve(undefined, response);
             });
+        });
     }
 
     function getAllSpeakers() {

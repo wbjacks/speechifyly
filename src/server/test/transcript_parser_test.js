@@ -26,11 +26,11 @@ describe('Transcript Parser', function() {
             }
         ];
 
-        _parser('https://www.youtube.com/watch?v=KJGZ9rYtcfE',
-            function(transcript) {
-                _assert.deepEqual(expectedTranscript, transcript);
-                _assert.isTrue(youtubeEndpoint.isDone());
-                done();
+        _parser('https://www.youtube.com/watch?v=KJGZ9rYtcfE')
+        .then(function(transcript) {
+            _assert.deepEqual(expectedTranscript, transcript);
+            _assert.isTrue(youtubeEndpoint.isDone());
+            done();
         });
     });
 });
