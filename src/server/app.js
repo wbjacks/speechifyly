@@ -97,8 +97,9 @@ if (!module.parent) {
         // Sockets
         io.of('/stream').on('connection', function(socket) {
             console.log('connected');
-            _ioStream(socket).on('STREAM_VIDEO', function(stream) {
-                _fs.createReadStream(_path.resolve('./static/test_video.webm')).pipe(stream);
+            _ioStream(socket).on('STREAM_VIDEO', function(req) {
+                console.log('Video request for ' + req.speaker + ' to say ' + req.sentence);
+                _fs.createReadStream(_path.resolve('./static/test_video.webm')).pipe(req.stream);
             });
         });
     });
