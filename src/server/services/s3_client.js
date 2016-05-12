@@ -64,6 +64,11 @@ var S3Client = function() {
             });
         },
 
+        getStreamFromBucket: function(key, bucket) {
+            var s3 = new _aws.S3();
+            return s3.getObject({Bucket: bucket, Key: key}).createReadStream();
+        },
+
         putInBucket: function(key, valueStream, bucket, callback) {
             var s3 = new _aws.S3();
             s3.upload({Key: key, Body: valueStream, Bucket: bucket}, function(err, data) {

@@ -12,8 +12,8 @@ require('util/workman').Worker(function(job, onCompletion) {
     }
     else {
         console.log("Process PID#" + process.pid + " fetching.");
-        //_fetchData(job.key, job.bucket, job.nodeId, onCompletion);
-        _fetchButts(job.butt, job.nodeId, onCompletion);
+        _fetchData(job.key, job.bucket, job.nodeId, onCompletion);
+        //_fetchButts(job.butt, job.nodeId, onCompletion);
     }
 }, process);
 
@@ -33,12 +33,25 @@ function _doMerge(file1, file2, nodeId, complete) {
         };
     _fs.writeFile(manifest, "file '" + file1 + "'" + _os.EOL + "file '" + file2 + "'");
 
+    console.log("Merging " + file1 + " + " + file2 + " to " + mergedFileName);
+
     var ffmpeg = _childProcess.spawn('ffmpeg', [
+        '-hide_banner',
+        '-loglevel', 'panic',
         '-f', 'concat',
         '-i', manifest,
         '-c', 'copy',
         '-y', mergedFileName
     ]);
+
+    ffmpeg.stderr.setEncoding('utf8');
+    ffmpeg.stderr.on('data', function(data) {
+        console.log(data);
+    });
+
+    ffmpeg.on('error', function(err) {
+        console.error("Spawn error:" + err);
+    });
 
     ffmpeg.on('close', function(exitCode) {
         if (exitCode === 0) {
@@ -62,16 +75,17 @@ function _doMerge(file1, file2, nodeId, complete) {
 }
 
 function _fetchData(key, bucket, nodeId, complete) {
-    var completionHandler = function(data) {
+        // TODO: (wbjacks) log error?
         var tempFileName = _tmp.tmpNameSync({
             dir: _path.resolve('./tmp/'),
             prefix: 'temp-',
             postfix: '.webm'
         });
-        data.createReadStream().pipe(_fs.createWriteStream(tempFileName));
-        complete({file: tempFileName, nodeId: nodeId});
-    };
-    _s3Client.getFromBucket(key, bucket, completionHandler);
+        var s3DataStream = _s3Client.getStreamFromBucket(key, bucket);
+        s3DataStream.on('finish', function() {
+            complete({file: tempFileName, nodeId: nodeId});
+        });
+        s3DataStream.pipe(_fs.createWriteStream(tempFileName));
 }
 
 function _fetchButts(butt, nodeId, onCompletion) {

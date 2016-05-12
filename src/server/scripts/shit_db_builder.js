@@ -31,5 +31,5 @@ catch(e) {
 
 //_s3Client.putInBucket('test-');
 
-obj.test[process.argv[2]] = _fs.readFileSync(process.argv[3]).toString();
+obj.test[process.argv[2]] = 'test-' + process.argv[2];
 _fs.writeFileSync('./SHIT_DB', JSON.stringify(obj));

@@ -84,7 +84,7 @@ var BiTree = function(leafSet, emptyNodeClass) {
         })
     }
 
-    this.toString = function() {
+    this.serialize = function() {
         return _root.serialize();
     }
 
