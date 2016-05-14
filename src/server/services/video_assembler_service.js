@@ -36,7 +36,7 @@ var VideoAssemblerService = function() {
             keys = _db.getS3KeysForWords(speaker, uniqueWords),
             wordToKeyMap = {};
         uniqueWords.forEach(function(word) {
-            wordToKeyMap[word] = keys.pop();
+            wordToKeyMap[word] = keys.shift();
         });
         return wordToKeyMap;
     }

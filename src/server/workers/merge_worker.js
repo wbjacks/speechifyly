@@ -44,7 +44,6 @@ function _doMerge(file1, file2, nodeId, complete) {
         '-y', mergedFileName
     ]);
 
-    ffmpeg.stderr.setEncoding('utf8');
     ffmpeg.stderr.on('data', function(data) {
         console.log(data);
     });

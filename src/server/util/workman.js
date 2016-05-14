@@ -3,7 +3,7 @@
 var _childProcess = require('child_process'),
 DEBUG = false; // TODO: (wbjacks) set this from environment
 
-var Manager = function(numberOfWorkers, initialData) {
+var Manager = function(numberOfWorkers, initialData, testLaunch) {
     var self = this;
 
     // Constructor
@@ -118,6 +118,7 @@ var Manager = function(numberOfWorkers, initialData) {
             while(_initialJobs.length !== 0) {
                 _matchJobToWorkerOrEnqueue(_initialJobs.pop());
             }
+            if (testLaunch) resolve();
         });
     }
 };
@@ -155,7 +156,10 @@ module.exports = {
     getWorkerInstance: function(doWork, process) {
         return new Worker(doWork, process);
     },
-    getManagerInstance: function(numberOfWorkers, workerFile, initialData) {
-        return new Manager(numberOfWorkers, workerFile, initialData);
+    getManagerInstance: function(numberOfWorkers, initialData) {
+        return new Manager(numberOfWorkers, initialData);
+    },
+    getManagerInstanceToTestLaunch: function(numberOfWorkers, initialData) {
+        return new Manager(numberOfWorkers, initialData);
     }
 };

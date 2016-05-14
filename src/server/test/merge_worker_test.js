@@ -12,7 +12,8 @@ var _tmp = require('tmp'),
 
 // A worker is an EventEmitter, and faking it allows testing through the
 // messaging API
-class FakeEmitter extends BaseEmitter {}
+class FakeEmitter extends BaseEmitter {
+}
 
 describe('MergeWorker', function() {
     describe('Private function _doMerge', function() {
@@ -37,6 +38,9 @@ describe('MergeWorker', function() {
             ' launch a child process', function()
         {
             var ffmpegWorker = new FakeEmitter();
+            ffmpegWorker.stderr = {
+                on: _sinon.spy()
+            }
             tmpMock.expects('tmpNameSync')
                 .twice()
                 .returns('foo');
@@ -44,8 +48,8 @@ describe('MergeWorker', function() {
                 .withExactArgs('foo', "file 'bar'" + _os.EOL + "file 'baz'")
                 .once();
             childProcessMock.expects('spawn')
-                .withExactArgs('ffmpeg', ['-f', 'concat', '-i', 'foo', '-c', 'copy',
-                    '-y', 'foo'])
+                .withExactArgs('ffmpeg', ['-hide_banner', '-loglevel', 'panic', '-f',
+                    'concat', '-i', 'foo', '-c', 'copy', '-y', 'foo'])
                 .once()
                 .returns(ffmpegWorker);
             fsMock.expects('unlink')
@@ -59,6 +63,7 @@ describe('MergeWorker', function() {
                 .once();
             _mergeWorker.__get__('_doMerge')('bar', 'baz', 0, function() {});
             ffmpegWorker.emit('close', 0);
+            _assert.isTrue(ffmpegWorker.stderr.on.calledOnce);
         });
     });
 
@@ -66,17 +71,14 @@ describe('MergeWorker', function() {
         var s3ClientMock, fsMock, readStreamMock, tmpMock, s3DataMock, mockS3Data;
 
         var dummyS3Data = {
-                createReadStream: function() {}
-            },
-            dummyReadStream = {
-                pipe: function() {}
-            }
+                pipe: function() {},
+                on: function() {}
+            };
 
         beforeEach(function() {
             fsMock = _sinon.mock(_fs);
             s3ClientMock = _sinon.mock(_s3Client);
             s3DataMock = _sinon.mock(dummyS3Data);
-            readStreamMock = _sinon.mock(dummyReadStream);
             tmpMock = _sinon.mock(_tmp);
         });
 
@@ -84,29 +86,28 @@ describe('MergeWorker', function() {
             s3ClientMock.verify();
             tmpMock.verify();
             s3DataMock.verify();
-            readStreamMock.verify();
             fsMock.verify();
 
             s3ClientMock.restore();
             fsMock.restore();
             s3DataMock.restore();
-            readStreamMock.restore();
             tmpMock.restore();
         });
 
         it('should fetch from s3 and create a file for the data in a callback',
             function(){
-                s3ClientMock.expects('getFromBucket')
+                s3ClientMock.expects('getStreamFromBucket')
                     .withArgs('foo', 'bar')
                     .once()
-                    .callsArgWith(2, dummyS3Data);
+                    .returns(dummyS3Data);
                 tmpMock.expects('tmpNameSync')
                     .once()
                     .returns('tmpFileName');
-                s3DataMock.expects('createReadStream')
+                s3DataMock.expects('on')
+                    .withArgs('finish')
                     .once()
-                    .returns(dummyReadStream);
-                readStreamMock.expects('pipe')
+                    .callsArg(1);
+                s3DataMock.expects('pipe')
                     .once();
                 fsMock.expects('createWriteStream')
                     .withExactArgs('tmpFileName')
