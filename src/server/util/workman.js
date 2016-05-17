@@ -22,7 +22,6 @@ var Manager = function(numberOfWorkers, initialData, testLaunch) {
 
     // TODO: (wbjacks) needs a lock for editing calls
 
-
     // Privates
     function _messageHandler(worker, message, resolve) {
         switch(message.tag) {

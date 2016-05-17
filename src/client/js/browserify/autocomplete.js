@@ -2,14 +2,15 @@ var Autocomplete = function() {
     return {
         getWordsForSpeaker: function getWordsForSpeaker(speaker, isDebug) {
             if (isDebug) {
-                return ["the", "a", "for", "why", "how", "who", "apple", "amith",
-                    "dumb", "is", "farts", "butts", "butt"];
+                return new Promise(function(res) {
+                    res(['the', 'a', 'for', 'why', 'how', 'who', 'apple', 'amith',
+                        'dumb', 'is', 'farts', 'butts', 'butt']);
+                });
             }
             else {
-                return $.getJSON("/words", {speaker: speaker}).done(function(data) {
-                    return data;
-                }).fail(function() {
-                    return [];
+                return new Promise(function(res, rej) {
+                    $.getJSON("http://localhost:3000/words", {speaker: speaker})
+                        .done(res).fail(rej);
                 });
             }
         }

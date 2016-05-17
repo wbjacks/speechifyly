@@ -8,12 +8,12 @@ var BiTree = function(leafSet, emptyNodeClass) {
             if (node.isRoot() || node.parent.children.indexOf(node) === 0) {
                 node.children = [
                     new __Node(emptyNodeClass ? new emptyNodeClass : undefined),
-                    new __Node(leafSet.pop(), [])
+                    new __Node(leafSet.shift(), [])
                 ];
                 node.children[0].parent = node;
                 node.children[1].parent = node;
                 if (leafSet.length === 1) {
-                    node.children[0].data = leafSet.pop();
+                    node.children[0].data = leafSet.shift();
                 }
             }
         },

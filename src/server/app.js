@@ -100,7 +100,8 @@ if (!module.parent) {
                 console.log('Video request for ' + req.speaker + ' to say ' + req.sentence);
                 _videoAssemblerService.makeVideo(req.speaker, req.sentence)
                     .then(function(file) {
-                        _fs.createReadStream(file.file).pipe(req.stream); // TODO: (wbjacks) fix wrapper
+                        // TODO: (wbjacks) fix wrapper
+                        _fs.createReadStream(file.file).pipe(req.stream);
                     });
             });
         });

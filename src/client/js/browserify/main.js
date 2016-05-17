@@ -31,7 +31,9 @@ $(document).ready(function() {
 
 $('#celebrity-input').change(function() {
     var selected = $('#celebrity-input').find(':selected').text();
-   autocomplete.list = _autocomplete.getWordsForSpeaker(selected, isDebug); 
+    _autocomplete.getWordsForSpeaker(selected, isDebug).then(function(data) {
+        autocomplete.list = data;
+    }); 
 });
 
 $('#submit').click(function() {
