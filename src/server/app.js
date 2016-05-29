@@ -86,7 +86,7 @@ app.get('/makeVideo', function (req, res) {
         });
 });
 
-// TODO: (wjackson) move out of app.js
+// TODO: (wbjacks) move out of app.js
 if (!module.parent) {
     _db.loadDb(function(){
         var port = process.env.PORT || 3000,
@@ -96,9 +96,13 @@ if (!module.parent) {
 
         // Sockets
         io.of('/stream').on('connection', function(socket) {
-            console.log('connected');
-            _ioStream(socket).on('STREAM_VIDEO', function(stream) {
-                _fs.createReadStream(_path.resolve('./static/test_video.webm')).pipe(stream);
+            _ioStream(socket).on('STREAM_VIDEO', function(req) {
+                console.log('Video request for ' + req.speaker + ' to say ' + req.sentence);
+                _videoAssemblerService.makeVideo(req.speaker, req.sentence)
+                    .then(function(file) {
+                        // TODO: (wbjacks) fix wrapper
+                        _fs.createReadStream(file.file).pipe(req.stream);
+                    });
             });
         });
     });

@@ -4,8 +4,7 @@ var _sinon = require('sinon'),
     _childProcess = require('child_process'),
     _assert = require('chai').assert,
     BaseEmitter = require('events'),
-    Manager = require('util/workman').Manager,
-    Worker = require('util/workman').Worker;
+    _workman = require('util/workman');
 
 // A worker is an EventEmitter, and faking it allows testing through the
 // messaging API
@@ -28,7 +27,7 @@ describe('Manager', function() {
                 .withExactArgs('foo.bar')
                 .thrice()
                 .returns({on: function() {}});
-            new Manager(3, 'foo.bar').launch();
+            _workman.getManagerInstance(3).launch('foo.bar');
         });
     });
 
@@ -45,14 +44,14 @@ describe('Manager', function() {
             var mockWorker = _sinon.mock(mockWorkerData).expects('send')
                 .withExactArgs(job)
                 .once();
-            var manager = new Manager(1);
+            var manager = _workman.getManagerInstance(1);
             manager.launch();
             manager.addJob(job);
             mockWorker.verify();
         });
 
         it('should enqueue job if no idle workers are present', function() {
-            var manager = new Manager(0);
+            var manager = _workman.getManagerInstance(0);
             manager.launch()
             manager.addJob({});
             _assert.equal(manager.getJobQueueSize(), 1);
@@ -61,9 +60,8 @@ describe('Manager', function() {
 
     describe('method getJobQueueSize', function() {
         it('should return size of job queue', function() {
-            var manager = new Manager(0, null, [{}]);
-            manager.launch();
-            _assert.equal(manager.getJobQueueSize(), 1);
+            var manager = _workman.getManagerInstanceToTestLaunch(0, [{}]);
+            manager.launch('', true).then(_assert.equal(manager.getJobQueueSize(), 1));
         });
     });
 
@@ -78,7 +76,7 @@ describe('Manager', function() {
                     .twice()
                     .onFirstCall().returns(worker)
                     .onSecondCall().returns({on: function() {}});
-                manager = new Manager(2);
+                manager = _workman.getManagerInstance(2);
             });
 
             it('should call method addJob', function() {
@@ -100,7 +98,7 @@ describe('Manager', function() {
                 childProcessMock.expects('fork')
                     .once()
                     .returns(worker);
-                manager = new Manager(1);
+                manager = _workman.getManagerInstance(1);
                 manager.generator = function() {};
                 manager.launch();
             }); 
@@ -141,7 +139,7 @@ describe('Worker', function() {
                     cb(msg);
                 },
                 doWorkSpy = _sinon.spy(doWork);
-            new Worker(doWorkSpy, fakeProcess);
+            _workman.getWorkerInstance(doWorkSpy, fakeProcess);
 
             fakeProcess.emit('message', 'foo');
             _assert.isTrue(processSpy.calledOnce);

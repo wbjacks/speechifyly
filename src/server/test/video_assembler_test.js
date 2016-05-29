@@ -9,7 +9,7 @@ var _assert = require('chai').assert,
 
 describe('VideoAssemblerService', function() {
     describe('_getKeysForSentence', function() {
-        var shitDbMock;        
+        var shitDbMock; 
         beforeEach(function() {
             shitDbMock = _sinon.mock(_shitDb);
         });
@@ -23,8 +23,13 @@ describe('VideoAssemblerService', function() {
             shitDbMock.expects('getS3KeysForWords')
                 .withExactArgs('obama', ['one', 'two', 'three', 'four'])
                 .once()
-                .returns('success');
-            _assert.equal('success',
+                .returns(['a', 'b', 'c', 'd']);
+            _assert.deepEqual({
+                    one: 'a',
+                    two: 'b',
+                    three: 'c',
+                    four: 'd'
+                },
                 _videoAssemblerService.__get__('getKeysForSentence')('obama',
                     'one two three two two four three'));
             shitDbMock.verify();
@@ -54,8 +59,7 @@ describe('VideoAssemblerService', function() {
                 }
 
                 workManMock.expects('getManagerInstance')
-                    .withExactArgs(3, 'workers/merge_worker',
-                        [{a: 'foo', nodeId: 0}, {a: 'bar', nodeId: 1}])
+                    .withExactArgs(3, [{a: 'foo', nodeId: 0}, {a: 'bar', nodeId: 1}])
                     .once()
                     .returns(dummyManager);
                 _videoAssemblerService.__get__('runManagerOnTree')(dummyTree);

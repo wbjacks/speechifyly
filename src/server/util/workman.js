@@ -3,7 +3,7 @@
 var _childProcess = require('child_process'),
 DEBUG = false; // TODO: (wbjacks) set this from environment
 
-var Manager = function(numberOfWorkers, workerFile, initialData) {
+var Manager = function(numberOfWorkers, initialData, testLaunch) {
     var self = this;
 
     // Constructor
@@ -21,7 +21,6 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
     this.completionCallback = null;
 
     // TODO: (wbjacks) needs a lock for editing calls
-
 
     // Privates
     function _messageHandler(worker, message, resolve) {
@@ -42,6 +41,7 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
 
     function _handleIdleWorker(worker, data, resolve) {
         if (self.isWorkComplete) {
+            console.log('Killing workers');
             _killWorker(worker);
             _workerQueue.forEach(function(worker) {
                 _killWorker(worker);
@@ -105,7 +105,7 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
         return _killedWorkers.length;
     };
 
-    this.launch = function() {
+    this.launch = function(workerFile) {
         return new Promise(function(resolve, reject) {
             for (var i = 0; i < _numberOfWorkers; i++) {
                 var worker = _childProcess.fork(workerFile);
@@ -117,6 +117,7 @@ var Manager = function(numberOfWorkers, workerFile, initialData) {
             while(_initialJobs.length !== 0) {
                 _matchJobToWorkerOrEnqueue(_initialJobs.pop());
             }
+            if (testLaunch) resolve();
         });
     }
 };
@@ -135,9 +136,10 @@ var Worker = function(doWork, process) {
             JSON.stringify(message));
         doWork(message, function(data) {
             var message = {tag: 'WORKER_DONE', data: data};
-            _log("Process PID#" + process.pid + "sending message: " +
+            _log("Process PID#" + process.pid + " sending message: " +
                 JSON.stringify(message));
             process.send(message);
+            _log("foo!");
         });
     });
 };
@@ -153,7 +155,10 @@ module.exports = {
     getWorkerInstance: function(doWork, process) {
         return new Worker(doWork, process);
     },
-    getManagerInstance: function(numberOfWorkers, workerFile, initialData) {
-        return new Manager(numberOfWorkers, workerFile, initialData);
+    getManagerInstance: function(numberOfWorkers, initialData) {
+        return new Manager(numberOfWorkers, initialData);
+    },
+    getManagerInstanceToTestLaunch: function(numberOfWorkers, initialData) {
+        return new Manager(numberOfWorkers, initialData);
     }
 };

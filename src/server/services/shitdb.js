@@ -1,5 +1,5 @@
 const S3_DB_KEY = 'SHIT_DB';
-const S3_DB_BUCKET = 'speechifyly';
+const S3_DB_BUCKET = 'speechifyly-test';
 
 var ShitDb = function() {
     var _s3     = require('services/s3_client'),

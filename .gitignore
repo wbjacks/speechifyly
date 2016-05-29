@@ -29,7 +29,7 @@ node_modules/*
 !node_modules/util
 
 # Bundled deps (this is a bit weird sry)
-src/client/js/browserify
+src/client/js/bundled.js
 
 # Optional npm cache directory
 .npm

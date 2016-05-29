@@ -1,9 +1,9 @@
 'use strict';
 
 class WorkerData {
-    constructor(key, bucket) {
+    constructor(key) {
         this.key = key;
-        this.bucket = bucket;
+        this.bucket = 'speechifyly-test';
         this.isReady = false;
         this.file1 = null;
         this.file2 = null;
@@ -30,11 +30,15 @@ var VideoAssemblerService = function() {
 
     function _getKeysForSentence(speaker, sentence) {
         var uniqueWords = sentence.trim().split(/\s+/).filter(
-            function(value, index, self)
-        {
-            return self.indexOf(value) === index;
+            function(value, index, self) {
+                return self.indexOf(value) === index;
+            }),
+            keys = _db.getS3KeysForWords(speaker, uniqueWords),
+            wordToKeyMap = {};
+        uniqueWords.forEach(function(word) {
+            wordToKeyMap[word] = keys.shift();
         });
-        return _db.getS3KeysForWords(speaker, uniqueWords);
+        return wordToKeyMap;
     }
 
     function _makeClipList(sentence, wordToKeyMap) {
@@ -65,14 +69,14 @@ var VideoAssemblerService = function() {
     }
 
     function _runManagerOnTree(tree) {
-        var manager = _workMan.getManagerInstance(NUMBER_OF_WORKERS,
-            'workers/merge_worker', tree.getLeaves().map(function(leaf) {
+        var manager = _workMan.getManagerInstance(NUMBER_OF_WORKERS, tree.getLeaves()
+            .map(function(leaf) {
                 var job = leaf.data;
                 job.nodeId = leaf.id;
                 return job;
             }));
-        manager.generator = _generator(tree);
-        return manager.launch();
+        manager.generator = _generator(tree, manager);
+        return manager.launch('./node_modules/workers/merge_worker'); // why can't I use node_module?
     }
 
     // Expose protected functions
@@ -83,9 +87,9 @@ var VideoAssemblerService = function() {
     return {
         makeVideo: function(speaker, sentence) {
             var wordToKeyMap = _getKeysForSentence(speaker, sentence),
-                sentenceTree = new BiTree(sentence.match(/\S+/).map(function(word) {
-                    return new JobNode(wordToKeyMap[word]); // TODO: (wbjacks) fixme
-                }));
+                sentenceTree = new BiTree(sentence.match(/\S+/g).map(function(word) {
+                    return new WorkerData(wordToKeyMap[word]); // TODO: (wbjacks) fixme
+                }), WorkerData);
             return _runManagerOnTree(sentenceTree);
         },
 
