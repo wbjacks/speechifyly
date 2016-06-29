@@ -1,7 +1,8 @@
 var S3Client = function() {
     var _aws = require('aws-sdk');
 
-    // eventually need to move this stuff somewhere else (Vault?) but whatever 4 now
+    // TODO: (wbjacks) creds are current invalid (sry hackers!!), add new creds to Heroku
+    // environment
     _aws.config.accessKeyId = 'AKIAI7S5MMHPZCPO4Y6A';
     _aws.config.secretAccessKey = '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';
     _aws.config.region = 'us-west-2';
